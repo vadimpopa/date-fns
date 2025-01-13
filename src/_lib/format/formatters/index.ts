@@ -750,18 +750,25 @@ export const formatters: { [token: string]: Formatter } = {
       // Short
       case "z":
       case "zz":
-      case "zzz":
-        return (
-          tzIntlTimeZoneName("short", date, locale) ??
-          "GMT" + formatTimezoneShort(date.getTimezoneOffset(), ":")
-        );
+      case "zzz": {
+        let timezone = getLocalIntlTimeZoneName("short", date, locale);
+
+        if (!timezone || timezone === "GMT") {
+          timezone = "GMT" + formatTimezoneShort(date.getTimezoneOffset(), ":");
+        }
+        return timezone;
+      }
       // Long
       case "zzzz":
-      default:
-        return (
-          tzIntlTimeZoneName("long", date, locale) ??
-          "GMT" + formatTimezone(date.getTimezoneOffset(), ":")
-        );
+      default: {
+        let timezone = getLocalIntlTimeZoneName("long", date, locale);
+
+        if (!timezone || timezone === "GMT") {
+          timezone = "GMT" + formatTimezone(date.getTimezoneOffset(), ":");
+        }
+
+        return timezone;
+      }
     }
   },
 
@@ -807,7 +814,7 @@ function formatTimezone(offset: number, delimiter: string = ""): string {
   return sign + hours + delimiter + minutes;
 }
 
-function tzIntlTimeZoneName(
+function getLocalIntlTimeZoneName(
   length: Intl.DateTimeFormatOptions["timeZoneName"],
   date: Date,
   locale: Pick<Locale, "options">,

@@ -651,24 +651,46 @@ describe("format", () => {
       expect(result).toBe(expectedResult);
     });
 
-    it("Time zone as text", () => {
+    it("Local time zone name as text", () => {
       const systemTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const result = format(date, "z zz zzz zzzz", { in: tz(systemTimeZone) });
-      // @ts-ignore
-      const timeZoneLongName = new Intl.DateTimeFormat("en", {
+      let timeZoneNameLong = new Intl.DateTimeFormat("en", {
         timeZoneName: "long",
         timeZone: systemTimeZone,
       })
         .formatToParts(date)
-        .find((part) => part.type === "timeZoneName").value;
+        .find((part) => part.type === "timeZoneName")?.value;
 
-      const expectedResult = [
-        timezoneGMTShort,
-        timezoneGMTShort,
-        timezoneGMTShort,
-        timeZoneLongName,
-      ].join(" ");
-      expect(result).toBe(expectedResult);
+      const timeZoneNameShort = new Intl.DateTimeFormat("en", {
+        timeZoneName: "short",
+        timeZone: systemTimeZone,
+      })
+        .formatToParts(date)
+        .find((part) => part.type === "timeZoneName")?.value;
+
+      if (timeZoneNameLong === "GMT") {
+        timeZoneNameLong = timezoneGMT;
+      }
+
+      if (timeZoneNameShort === "GMT") {
+        const expectedResult = [
+          timezoneGMTShort,
+          timezoneGMTShort,
+          timezoneGMTShort,
+          timeZoneNameLong,
+        ].join(" ");
+
+        expect(result).toBe(expectedResult);
+      } else {
+        const expectedResult = [
+          timeZoneNameShort,
+          timeZoneNameShort,
+          timeZoneNameShort,
+          timeZoneNameLong,
+        ].join(" ");
+
+        expect(result).toBe(expectedResult);
+      }
     });
   });
 
