@@ -37,7 +37,9 @@ type Formatter = (
   token: string,
   localize: Localize,
   options: Required<
-    LocalizedOptions<"options"> & WeekOptions & FirstWeekContainsDateOptions
+    LocalizedOptions<"options" | "code"> &
+      WeekOptions &
+      FirstWeekContainsDateOptions
   >,
 ) => string;
 
@@ -817,19 +819,23 @@ function formatTimezone(offset: number, delimiter: string = ""): string {
 function getLocalIntlTimeZoneName(
   length: Intl.DateTimeFormatOptions["timeZoneName"],
   date: Date,
-  locale: Pick<Locale, "options">,
+  locale: Pick<Locale, "code">,
 ): string | undefined {
   const defaultOptions = getDefaultOptions();
   const givenLocale = locale ?? defaultOptions.locale;
 
   // Only if date is TZDate or TZDateMini
-  if (date.timeZone) {
+  // @ts-ignore
+  const timeZone = date.timeZone;
+
+  if (timeZone) {
     // If a locale has been provided `en-US` is used as a fallback in case it is an
     // invalid locale, otherwise the locale is left undefined to use the system locale.
     const dtf = new Intl.DateTimeFormat(
       givenLocale ? [givenLocale.code, "en-US"] : undefined,
       {
-        timeZone: date.timeZone,
+        // @ts-ignore
+        timeZone,
         timeZoneName: length,
       },
     );
